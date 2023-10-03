@@ -1,0 +1,54 @@
+name: 'Test Setup'
+description: 'Runs steps common to the preparation for each test job'
+inputs:
+  go-version:
+    description: 'The version of Go to install.'
+    required: true
+  runner-os:
+    description: 'The OS of the runner.'
+    required: true
+runs:
+  using: "composite"
+  steps:
+  - name: Git
+    shell: bash
+    run: |
+      # See actions/checkout#135
+      git config --global core.autocrlf false
+      git config --global core.eol lf
+  - name: Checkout
+    uses: actions/checkout@v3
+  - name: Setup Go
+    uses: actions/setup-go@v4
+    with:
+      go-version: ${{ inputs.go-version }}
+  - name: Setup JDK
+    uses: actions/setup-java@v3
+    with:
+      java-version: '11'
+      distribution: 'adopt'
+  - name: Install dependencies
+    if: inputs.runner-os == 'Linux'
+    shell: bash
+    run: |
+      sudo apt-get update
+      sudo apt-get install libasound2-dev libgl1-mesa-dev libxcursor-dev libxi-dev libxinerama-dev libxrandr-dev libxxf86vm-dev
+  - name: Install wasmbrowsertest
+    shell: bash
+    run: |
+      go install github.com/agnivade/wasmbrowsertest@bb77d443e302d06f0d2462336bc2765942e0e862
+      mv $(go env GOPATH)/bin/wasmbrowsertest${{ inputs.runner-os == 'Windows' && '.exe' || '' }} $(go env GOPATH)/bin/go_js_wasm_exec${{ inputs.runner-os == 'Windows' && '.exe' || '' }}
+      go install github.com/agnivade/wasmbrowsertest/cmd/cleanenv@bb77d443e302d06f0d2462336bc2765942e0e862
+  - name: Prepare ebitenmobile test
+    shell: bash
+    run: |
+      cd /tmp
+      git clone --depth=1 https://github.com/hajimehoshi/go-inovation
+      cd go-inovation
+      go mod edit -replace=github.com/hajimehoshi/ebiten/v2=$GITHUB_WORKSPACE
+      go mod tidy
+  - name: Xvfb
+    if: inputs.runner-os == 'Linux'
+    shell: bash
+    run: |
+      Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &
