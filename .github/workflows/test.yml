@@ -2,19 +2,26 @@ name: Test
 
 on: [push, pull_request]
 
-jobs:
-  test:
+permissions: {}
+
+defaults:
+  run:
+    shell: bash
+
+env:
+  os: [ubuntu-latest, macos-latest, windows-latest]
+  go: ['1.18.x', '1.19.x', '1.20.x', '1.21.x']
+  DISPLAY: ':99.0'
+
+jobs:  
+  vet-build-mod:
     strategy:
+      fail-fast: false
       matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
-        go: ['1.18.x', '1.19.x', '1.20.x', '1.21.x']
-    name: Test with Go ${{ matrix.go }} on ${{ matrix.os }}
+        os: ${{ env.os }}
+        go: ${{ env.go }}
+    name: Vet/Build/Mod with Go ${{ matrix.go }} on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
-    env:
-      DISPLAY: ':99.0'
-    defaults:
-      run:
-        shell: bash
     steps:
       - name: Git
         run: |
@@ -85,10 +92,58 @@ jobs:
           go mod vendor
           go build -v .
 
+  test-linux:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest]
+        go: ${{ env.go }}
+    name: Test (Linux) with Go ${{ matrix.go }} on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Git
+        run: |
+          # See actions/checkout#135
+          git config --global core.autocrlf false
+          git config --global core.eol lf
+
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Setup dependencies
+        uses: ./.github/actions/test-setup
+        with:
+          go-version: ${{ matrix.go }}
+          runner-os: ${{ runner.os }}
+
       - name: go test (Linux)
         if: runner.os == 'Linux'
         run: |
           go test -shuffle=on -v -p=1 ./...
+
+  test-linux386:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: ${{ env.os }}
+        go: ${{ env.go }}
+    name: Test (Linux 386) with Go ${{ matrix.go }} on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Git
+        run: |
+          # See actions/checkout#135
+          git config --global core.autocrlf false
+          git config --global core.eol lf
+
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Setup dependencies
+        uses: ./.github/actions/test-setup
+        with:
+          go-version: ${{ matrix.go }}
+          runner-os: ${{ runner.os }}
 
       - name: go test (Linux 386)
         if: runner.os == 'Linux'
@@ -101,11 +156,59 @@ jobs:
           sudo apt-get install libasound2-dev:i386 libgl1-mesa-dev:i386 libxcursor-dev:i386 libxi-dev:i386 libxinerama-dev:i386 libxrandr-dev:i386 libxxf86vm-dev:i386
           env CGO_ENABLED=1 GOARCH=386 go test -shuffle=on -v -p=1 ./...
 
+  test-linux-opengl:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: ${{ env.os }}
+        go: ${{ env.go }}
+    name: Test (Linux OpenGL ES) with Go ${{ matrix.go }} on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Git
+        run: |
+          # See actions/checkout#135
+          git config --global core.autocrlf false
+          git config --global core.eol lf
+
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Setup dependencies
+        uses: ./.github/actions/test-setup
+        with:
+          go-version: ${{ matrix.go }}
+          runner-os: ${{ runner.os }}
+
       - name: go test (Linux OpenGL ES)
         if: runner.os == 'Linux'
         run: |
           sudo apt-get install libgles2-mesa-dev
           env EBITENGINE_GRAPHICS_LIBRARY=opengl EBITENGINE_OPENGL=es go test -shuffle=on -v -p=1 ./...
+
+  test:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: ${{ env.os }}
+        go: ${{ env.go }}
+    name: Test with Go ${{ matrix.go }} on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Git
+        run: |
+          # See actions/checkout#135
+          git config --global core.autocrlf false
+          git config --global core.eol lf
+
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Setup dependencies
+        uses: ./.github/actions/test-setup
+        with:
+          go-version: ${{ matrix.go }}
+          runner-os: ${{ runner.os }}
 
       - name: go test (Windows)
         if: runner.os == 'Windows'
