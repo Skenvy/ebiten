@@ -9,17 +9,15 @@ defaults:
     shell: bash
 
 env:
-  os: "[ubuntu-latest, macos-latest, windows-latest]"
-  go: "['1.18.x', '1.19.x', '1.20.x', '1.21.x']"
   DISPLAY: ':99.0'
 
-jobs:  
+jobs:
   vet-build-mod:
     strategy:
       fail-fast: false
       matrix:
-        os: ${{ fromJson(env.os) }}
-        go: ${{ fromJson(env.go) }}
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        go: ['1.18.x', '1.19.x', '1.20.x', '1.21.x']
     name: Vet/Build/Mod with Go ${{ matrix.go }} on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     steps:
@@ -97,7 +95,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest]
-        go: ${{ fromJson(env.go) }}
+        go: ['1.18.x', '1.19.x', '1.20.x', '1.21.x']
     name: Test (Linux) with Go ${{ matrix.go }} on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     steps:
@@ -126,7 +124,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest]
-        go: ${{ fromJson(env.go) }}
+        go: ['1.18.x', '1.19.x', '1.20.x', '1.21.x']
     name: Test (Linux 386) with Go ${{ matrix.go }} on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     steps:
@@ -161,7 +159,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest]
-        go: ${{ fromJson(env.go) }}
+        go: ['1.18.x', '1.19.x', '1.20.x', '1.21.x']
     name: Test (Linux OpenGL ES) with Go ${{ matrix.go }} on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     steps:
@@ -190,8 +188,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: ${{ fromJson(env.os) }}
-        go: ${{ fromJson(env.go) }}
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        go: ['1.18.x', '1.19.x', '1.20.x', '1.21.x']
     name: Test with Go ${{ matrix.go }} on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     steps:
