@@ -10,14 +10,6 @@ inputs:
 runs:
   using: "composite"
   steps:
-  - name: Git
-    shell: bash
-    run: |
-      # See actions/checkout#135
-      git config --global core.autocrlf false
-      git config --global core.eol lf
-  - name: Checkout
-    uses: actions/checkout@v3
   - name: Setup Go
     uses: actions/setup-go@v4
     with:

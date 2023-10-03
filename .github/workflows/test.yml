@@ -25,41 +25,11 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
 
-      - name: Setup Go
-        uses: actions/setup-go@v4
+      - name: Setup dependencies
+        uses: ./.github/actions/test-setup
         with:
           go-version: ${{ matrix.go }}
-
-      - name: Setup JDK
-        uses: actions/setup-java@v3
-        with:
-          java-version: '11'
-          distribution: 'adopt'
-
-      - name: Install dependencies
-        if: runner.os == 'Linux'
-        run: |
-          sudo apt-get update
-          sudo apt-get install libasound2-dev libgl1-mesa-dev libxcursor-dev libxi-dev libxinerama-dev libxrandr-dev libxxf86vm-dev
-
-      - name: Install wasmbrowsertest
-        run: |
-          go install github.com/agnivade/wasmbrowsertest@bb77d443e302d06f0d2462336bc2765942e0e862
-          mv $(go env GOPATH)/bin/wasmbrowsertest${{ runner.os == 'Windows' && '.exe' || '' }} $(go env GOPATH)/bin/go_js_wasm_exec${{ runner.os == 'Windows' && '.exe' || '' }}
-          go install github.com/agnivade/wasmbrowsertest/cmd/cleanenv@bb77d443e302d06f0d2462336bc2765942e0e862
-
-      - name: Prepare ebitenmobile test
-        run: |
-          cd /tmp
-          git clone --depth=1 https://github.com/hajimehoshi/go-inovation
-          cd go-inovation
-          go mod edit -replace=github.com/hajimehoshi/ebiten/v2=$GITHUB_WORKSPACE
-          go mod tidy
-
-      - name: Xvfb
-        if: runner.os == 'Linux'
-        run: |
-          Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &
+          runner-os: ${{ runner.os }}
 
       - name: go vet
         run: |
